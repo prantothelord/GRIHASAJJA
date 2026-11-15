@@ -1,0 +1,37 @@
+name: Build Furniture Calc APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Initialize Android & App Name
+        run: |
+          flutter create --platforms=android --org=com.furniturecalc --project-name=furniture_calc .
+          sed -i 's/android:label="furniture_calc"/android:label="Furniture Measure"/g' android/app/src/main/AndroidManifest.xml
+
+      - run: flutter pub get
+      - run: flutter build apk --release
+
+      - name: Rename APK
+        run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/Furniture-Measure.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Furniture-Measure-APK
+          path: build/app/outputs/flutter-apk/Furniture-Measure.apk
